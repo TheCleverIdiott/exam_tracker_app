@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useExamStore } from '../store/useExamStore';
 import { useStudyPlanStore } from '../store/useStudyPlanStore';
 import { ExamFormDialog } from '../components/ExamFormDialog';
@@ -11,6 +11,7 @@ export default function Dashboard() {
   const { exams, deleteExam } = useExamStore();
   const { plans, nodes, addPlan } = useStudyPlanStore();
   const [filter, setFilter] = useState<'All' | 'Next 7 Days' | 'Next 30 Days'>('All');
+  const [sortBy, setSortBy] = useState<'Date (Asc)' | 'Date (Desc)' | 'Priority'>('Date (Asc)');
   const navigate = useNavigate();
 
   const now = new Date();
@@ -30,12 +31,48 @@ export default function Dashboard() {
       return true;
     })
     .sort((a, b) => {
+      if (sortBy === 'Priority') {
+        const priorityScore = { High: 3, Medium: 2, Low: 1 };
+        const scoreA = priorityScore[a.priority as keyof typeof priorityScore] || 0;
+        const scoreB = priorityScore[b.priority as keyof typeof priorityScore] || 0;
+        if (scoreA !== scoreB) return scoreB - scoreA;
+      }
+      
       const dateA = parseISO(`${a.date}T${a.startTime}`);
       const dateB = parseISO(`${b.date}T${b.startTime}`);
+      
+      if (sortBy === 'Date (Desc)') {
+        return dateB.getTime() - dateA.getTime();
+      }
       return dateA.getTime() - dateB.getTime();
     });
 
   const nextExam = upcomingExams.length > 0 ? upcomingExams[0] : null;
+
+  const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0 });
+
+  useEffect(() => {
+    if (!nextExam) return;
+    const updateCountdown = () => {
+      const target = parseISO(`${nextExam.date}T${nextExam.startTime}`);
+      const diff = target.getTime() - new Date().getTime();
+      
+      if (diff <= 0) {
+        setTimeLeft({ days: 0, hours: 0, minutes: 0 });
+        return;
+      }
+      
+      setTimeLeft({
+        days: Math.floor(diff / (1000 * 60 * 60 * 24)),
+        hours: Math.floor((diff / (1000 * 60 * 60)) % 24),
+        minutes: Math.floor((diff / 1000 / 60) % 60),
+      });
+    };
+
+    updateCountdown();
+    const timer = setInterval(updateCountdown, 60000);
+    return () => clearInterval(timer);
+  }, [nextExam]);
 
   const handleCreateOrGoToPlan = async (exam: any) => {
     const existingPlan = plans.find(p => p.linkedExamId === exam.id);
@@ -79,17 +116,17 @@ export default function Dashboard() {
           <p className="text-muted-foreground mb-6">{nextExam.examTitle} • {format(parseISO(nextExam.date), 'MMMM do, yyyy')}</p>
           <div className="flex justify-center gap-4 md:gap-8">
             <div className="flex flex-col items-center">
-              <span className="text-4xl md:text-6xl font-bold font-mono text-foreground">03</span>
+              <span className="text-4xl md:text-6xl font-bold font-mono text-foreground">{String(timeLeft.days).padStart(2, '0')}</span>
               <span className="text-xs font-semibold text-muted-foreground mt-2 uppercase tracking-wider">Days</span>
             </div>
             <span className="text-4xl md:text-6xl font-bold text-muted-foreground/20">:</span>
             <div className="flex flex-col items-center">
-              <span className="text-4xl md:text-6xl font-bold font-mono text-foreground">14</span>
+              <span className="text-4xl md:text-6xl font-bold font-mono text-foreground">{String(timeLeft.hours).padStart(2, '0')}</span>
               <span className="text-xs font-semibold text-muted-foreground mt-2 uppercase tracking-wider">Hours</span>
             </div>
             <span className="text-4xl md:text-6xl font-bold text-muted-foreground/20">:</span>
             <div className="flex flex-col items-center">
-              <span className="text-4xl md:text-6xl font-bold font-mono text-foreground">21</span>
+              <span className="text-4xl md:text-6xl font-bold font-mono text-foreground">{String(timeLeft.minutes).padStart(2, '0')}</span>
               <span className="text-xs font-semibold text-muted-foreground mt-2 uppercase tracking-wider">Mins</span>
             </div>
           </div>
@@ -104,17 +141,28 @@ export default function Dashboard() {
 
       {/* Upcoming Exams List */}
       <div>
-        <div className="flex justify-between items-center mb-4">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
           <h3 className="text-xl font-semibold tracking-tight">Upcoming Schedule</h3>
-          <select 
-            value={filter}
-            onChange={(e) => setFilter(e.target.value as any)}
-            className="h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-          >
-            <option value="All">All Upcoming</option>
-            <option value="Next 7 Days">Next 7 Days</option>
-            <option value="Next 30 Days">Next 30 Days</option>
-          </select>
+          <div className="flex gap-2">
+            <select 
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as any)}
+              className="h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+            >
+              <option value="Date (Asc)">Sort: Date (Asc)</option>
+              <option value="Date (Desc)">Sort: Date (Desc)</option>
+              <option value="Priority">Sort: Priority</option>
+            </select>
+            <select 
+              value={filter}
+              onChange={(e) => setFilter(e.target.value as any)}
+              className="h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+            >
+              <option value="All">Filter: All</option>
+              <option value="Next 7 Days">Filter: 7 Days</option>
+              <option value="Next 30 Days">Filter: 30 Days</option>
+            </select>
+          </div>
         </div>
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">

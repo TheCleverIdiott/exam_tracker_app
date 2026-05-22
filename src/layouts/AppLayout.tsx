@@ -1,12 +1,13 @@
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Outlet, NavLink } from 'react-router-dom';
-import { Calendar as CalendarIcon, LayoutDashboard, Settings, BookOpen, Clock, LogOut, Bell } from 'lucide-react';
+import { Menu, X, Calendar as CalendarIcon, LayoutDashboard, Settings, BookOpen, Clock, LogOut, Bell } from 'lucide-react';
 import { useTheme } from '../components/theme-provider';
 import { useAuth } from '../contexts/AuthContext';
 import { useExamStore } from '../store/useExamStore';
 import { useStudyPlanStore } from '../store/useStudyPlanStore';
 
 export default function AppLayout() {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { theme, setTheme } = useTheme();
   const { signOut } = useAuth();
   const { fetchExams } = useExamStore();
@@ -27,7 +28,50 @@ export default function AppLayout() {
 
   return (
     <div className="flex h-screen w-full overflow-hidden bg-background">
-      {/* Sidebar - Apple Glassmorphism Style */}
+      {/* Mobile Navigation Drawer */}
+      {isMobileMenuOpen && (
+        <div className="fixed inset-0 z-50 flex md:hidden">
+          {/* Backdrop */}
+          <div className="fixed inset-0 bg-background/80 backdrop-blur-sm" onClick={() => setIsMobileMenuOpen(false)} />
+          
+          {/* Sidebar */}
+          <aside className="relative w-64 h-full border-r border-border glass flex flex-col bg-background shadow-2xl">
+            <div className="p-6 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-xl bg-accent flex items-center justify-center text-accent-foreground shadow-lg">
+                  <Clock size={20} />
+                </div>
+                <h1 className="font-semibold text-xl tracking-tight">Planner</h1>
+              </div>
+              <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 text-muted-foreground hover:bg-secondary rounded-full">
+                <X size={20} />
+              </button>
+            </div>
+            
+            <nav className="flex-1 px-4 py-4 space-y-1 overflow-y-auto">
+              {navItems.map((item) => (
+                <NavLink
+                  key={item.path}
+                  to={item.path}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={({ isActive }) =>
+                    `flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 ${
+                      isActive
+                        ? 'bg-primary text-primary-foreground shadow-md'
+                        : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
+                    }`
+                  }
+                >
+                  <item.icon size={18} />
+                  <span className="font-medium">{item.name}</span>
+                </NavLink>
+              ))}
+            </nav>
+          </aside>
+        </div>
+      )}
+
+      {/* Desktop Sidebar - Apple Glassmorphism Style */}
       <aside className="w-64 border-r border-border glass flex flex-col hidden md:flex">
         <div className="p-6 flex items-center gap-3">
           <div className="w-8 h-8 rounded-xl bg-accent flex items-center justify-center text-accent-foreground shadow-lg">
@@ -59,10 +103,16 @@ export default function AppLayout() {
       {/* Main Content Area */}
       <main className="flex-1 flex flex-col h-full relative overflow-y-auto">
         {/* Header */}
-        <header className="h-16 border-b border-border glass sticky top-0 z-10 flex items-center justify-between px-6">
-          <div className="flex-1"></div>
+        <header className="h-16 border-b border-border glass sticky top-0 z-10 flex items-center justify-between px-4 md:px-6">
+          <div className="flex items-center gap-2 md:hidden">
+            <button onClick={() => setIsMobileMenuOpen(true)} className="p-2 text-foreground hover:bg-secondary rounded-md" aria-label="Open Menu">
+              <Menu size={24} />
+            </button>
+            <span className="font-semibold tracking-tight text-lg ml-1">Exam Planner</span>
+          </div>
+          <div className="hidden md:flex flex-1"></div>
           
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 md:gap-4">
             <button
               onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
               className="p-2 rounded-full hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"
@@ -81,12 +131,12 @@ export default function AppLayout() {
             >
               <LogOut size={20} />
             </button>
-            <div className="w-8 h-8 rounded-full bg-secondary border border-border"></div>
+            <div className="w-8 h-8 rounded-full bg-secondary border border-border hidden sm:block"></div>
           </div>
         </header>
 
         {/* Page Content */}
-        <div className="p-6 md:p-8 max-w-7xl mx-auto w-full flex-1">
+        <div className="p-4 sm:p-6 md:p-8 max-w-7xl mx-auto w-full flex-1">
           <Outlet />
         </div>
       </main>
