@@ -147,7 +147,7 @@ export default function LandingPage() {
           <Link to="/register" className="px-6 py-3 bg-foreground text-background text-sm font-semibold rounded-full hover:opacity-90 transition-opacity">
             Create Free Account
           </Link>
-          <p className="text-sm text-muted-foreground mt-8">© {new Date().getFullYear()} Exam Planner. Built for students.</p>
+          <p className="text-sm text-muted-foreground mt-8">© {new Date().getFullYear()} Exam Planner. Built for PuiPui, Hehe.</p>
         </div>
       </footer>
     </div>
