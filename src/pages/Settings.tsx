@@ -3,7 +3,8 @@ import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { useTheme } from '../components/theme-provider';
 import { useExamStore } from '../store/useExamStore';
-import { User, Lock, Palette, Database, Loader2, Save, Download } from 'lucide-react';
+import { User, Lock, Palette, Database, Loader2, Save, Download, Calendar } from 'lucide-react';
+import { downloadIcsFile } from '../lib/icsGenerator';
 
 export default function Settings() {
   const [activeTab, setActiveTab] = useState<'account' | 'appearance' | 'data'>('account');
@@ -196,11 +197,16 @@ function DataSettings() {
       <div className="glass-panel p-5 border-border max-w-md flex flex-col gap-4">
         <div>
           <h3 className="font-semibold mb-1">Export Data</h3>
-          <p className="text-sm text-muted-foreground">Download a CSV copy of your exam schedule.</p>
+          <p className="text-sm text-muted-foreground">Download a CSV or Calendar file of your exam schedule.</p>
         </div>
-        <button onClick={handleExportCSV} className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity self-start">
-          <Download size={16} /> Export as CSV
-        </button>
+        <div className="flex flex-col sm:flex-row gap-3">
+          <button onClick={handleExportCSV} className="flex items-center justify-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity">
+            <Download size={16} /> Export as CSV
+          </button>
+          <button onClick={() => downloadIcsFile(exams)} className="flex items-center justify-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity">
+            <Calendar size={16} /> Export as .ics
+          </button>
+        </div>
       </div>
     </div>
   );

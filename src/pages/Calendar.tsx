@@ -15,8 +15,9 @@ import {
   parseISO,
   isToday
 } from 'date-fns';
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock, MapPin, Edit2, Trash2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock, MapPin, Edit2, Trash2, Download } from 'lucide-react';
 import type { Exam } from '../lib/types';
+import { downloadIcsFile } from '../lib/icsGenerator';
 
 export default function Calendar() {
   const { exams, deleteExam } = useExamStore();
@@ -46,13 +47,21 @@ export default function Calendar() {
           <h1 className="text-3xl font-bold tracking-tight">Calendar</h1>
           <p className="text-muted-foreground mt-1">Manage your exam schedule.</p>
         </div>
-        <ExamFormDialog 
-          trigger={
-            <button className="px-4 py-2 bg-accent text-accent-foreground font-semibold rounded-lg shadow-sm hover:opacity-90 transition-opacity">
-              Add Exam
-            </button>
-          } 
-        />
+        <div className="flex gap-2">
+          <button 
+            onClick={() => downloadIcsFile(exams)}
+            className="px-4 py-2 bg-secondary text-secondary-foreground font-semibold rounded-lg shadow-sm hover:opacity-90 transition-opacity flex items-center gap-2"
+          >
+            <Download size={16} /> Export .ics
+          </button>
+          <ExamFormDialog 
+            trigger={
+              <button className="px-4 py-2 bg-accent text-accent-foreground font-semibold rounded-lg shadow-sm hover:opacity-90 transition-opacity">
+                Add Exam
+              </button>
+            } 
+          />
+        </div>
       </div>
       
       <div className="glass-panel flex-1 flex flex-col p-4 md:p-6 overflow-hidden min-h-[700px]">

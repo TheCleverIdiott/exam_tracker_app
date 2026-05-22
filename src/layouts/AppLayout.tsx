@@ -5,6 +5,8 @@ import { useTheme } from '../components/theme-provider';
 import { useAuth } from '../contexts/AuthContext';
 import { useExamStore } from '../store/useExamStore';
 import { useStudyPlanStore } from '../store/useStudyPlanStore';
+import { PomodoroTimer } from '../components/PomodoroTimer';
+import { usePomodoroStore } from '../store/usePomodoroStore';
 
 export default function AppLayout() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -19,7 +21,7 @@ export default function AppLayout() {
   }, [fetchExams, fetchData]);
 
   const navItems = [
-    { name: 'Dashboard', path: '/', icon: LayoutDashboard },
+    { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
     { name: 'Calendar', path: '/calendar', icon: CalendarIcon },
     { name: 'Study Planner', path: '/planner', icon: BookOpen },
     { name: 'Reminders', path: '/reminders', icon: Bell },
@@ -114,6 +116,12 @@ export default function AppLayout() {
           
           <div className="flex items-center gap-2 md:gap-4">
             <button
+              onClick={() => usePomodoroStore.getState().setIsOpen(true)}
+              className="px-3 py-1.5 flex items-center gap-2 rounded-full bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground font-semibold text-sm transition-colors"
+            >
+              <Clock size={16} /> Timer
+            </button>
+            <button
               onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
               className="p-2 rounded-full hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"
               aria-label="Toggle theme"
@@ -140,6 +148,8 @@ export default function AppLayout() {
           <Outlet />
         </div>
       </main>
+      
+      <PomodoroTimer />
     </div>
   );
 }

@@ -5,11 +5,12 @@ import { useStudyPlanStore } from '../store/useStudyPlanStore';
 import { StudyPlanModal } from '../components/StudyPlanModal';
 import { 
   Plus, ChevronLeft, Calendar, FileText, CheckCircle2, 
-  Link as LinkIcon, BookOpen, Trash2, Edit2, Circle, Upload
+  Link as LinkIcon, BookOpen, Trash2, Edit2, Circle, Upload, Clock
 } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { supabase } from '../lib/supabase';
 import { Loader2 } from 'lucide-react';
+import { usePomodoroStore } from '../store/usePomodoroStore';
 
 export default function Planner() {
   const [searchParams] = useSearchParams();
@@ -486,6 +487,18 @@ function SyllabusNodeRow({ node, allNodes, allResources, level, onAddChild, onAd
           
           <button onClick={() => onAddResource(node.id)} className="p-1.5 text-muted-foreground hover:text-primary hover:bg-secondary rounded-md" title="Add Resource Link">
             <LinkIcon size={14} />
+          </button>
+          <button 
+            onClick={() => {
+              const pomodoro = usePomodoroStore.getState();
+              pomodoro.setLinkedTaskId(node.id);
+              pomodoro.setIsOpen(true);
+              pomodoro.setMode('Focus');
+            }} 
+            className="p-1.5 text-orange-500 hover:text-orange-600 hover:bg-orange-500/10 rounded-md transition-colors" 
+            title="Start Focus Session"
+          >
+            <Clock size={14} />
           </button>
           <button onClick={() => onAddChild(node.id)} className="p-1.5 text-muted-foreground hover:text-blue-600 dark:hover:text-blue-400 hover:bg-secondary rounded-md" title="Add Sub-topic">
             <Plus size={14} />
